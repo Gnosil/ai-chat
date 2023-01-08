@@ -1,6 +1,25 @@
 <template>
+ 
   <div class="home" style="margin:1vw;">
-    <Button type="success" @click="getPermission()" style="margin:1vw;">获取麦克风权限</Button>
+<div class="common-layout">
+    <el-container>
+      <el-main>Conversation</el-main>
+      <el-footer>
+      <canvas id="canvas" height="20" style="width:60%;border-radius: 16px;" :style="isCanvasShow"></canvas>
+      <canvas id="playChart" height="20" style="width:60%;border-radius: 16px;visibility:hidden"></canvas>
+      <br/>
+      <div class="controlGroup" style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      ">
+      <el-button id="recordBtn" :icon="recBtnIcon" @click="handleRecord()" circle size="large"/>
+      <el-button id="cancelBtn" :icon="Close" @click="cancelRecord()" circle size="small" :style="isCancelBtnShow"/>
+      </div>
+      </el-footer>
+    </el-container>
+  </div>
+    <!--<Button type="success" @click="getPermission()" style="margin:1vw;">获取麦克风权限</Button>
     <br/>
     <Button type="info" @click="startRecorder()"  style="margin:1vw;">开始录音</Button>
     <Button type="info" @click="resumeRecorder()" style="margin:1vw;">继续录音</Button>
@@ -23,10 +42,12 @@
       <canvas id="canvas"></canvas>
       <span style="padding: 0 10%;"></span>
       <canvas id="playChart"></canvas>
-    </div>
+    </div>-->
   </div>
 </template>
- 
+<script setup>
+  import {Microphone,Close} from '@element-plus/icons-vue'
+</script>
 <script>
   import Recorder from 'js-audio-recorder'
 
@@ -51,6 +72,10 @@
     name: 'home',
     data () {
       return {
+        recBtnIcon:Microphone,
+        isRecording: false,
+        isCancelBtnShow: 'display:none;',
+        isCanvasShow: 'visibility:hidden;',
         //波浪图-录音
         drawRecordId:null,
         oCanvas : null,
@@ -65,6 +90,37 @@
       this.startCanvas();
     },
     methods: {
+      handleRecord(){
+        this.getPermission();
+        if(this.isRecording){
+        this.stopRecorder();
+        this.playRecorder();
+        //hidden the cancel button
+        this.isCancelBtnShow = 'display:none;';
+        //hidden the canvas
+        this.isCanvasShow = 'visibility:hidden;';
+        this.destroyRecorder();
+        }else{
+        this.startRecorder();
+        //display the cancel button
+        this.isCancelBtnShow = 'display:block;';
+        //show the canvas
+        this.isCanvasShow = 'visibility:visible;';
+        }
+        //修改按钮图标
+        this.isRecording = !this.isRecording;
+        this.recBtnIcon = this.isRecording ? 'VideoPause' : 'Microphone';
+
+      },
+      cancelRecord(){
+        this.stopRecorder();
+        this.stopPlayRecorder();
+        this.isRecording = false;
+        this.recBtnIcon = 'Microphone';
+        this.isCancelBtnShow = 'display:none;';
+        this.isCanvasShow = 'visibility:hidden;';
+        this.destroyRecorder();
+      },
       /**
        * 波浪图配置
        * */
@@ -109,6 +165,7 @@
       playRecorder () {
         recorder.play();
         this.drawPlay();//绘制波浪图
+
       },
       // 暂停录音播放
       pausePlayRecorder () {
@@ -163,7 +220,7 @@
        * */
       getPermission(){
         Recorder.getPermission().then(() => {
-          this.$Message.success('获取权限成功')
+          //this.$Message.success('获取权限成功')
         }, (error) => {
           console.log(`${error.name} : ${error.message}`);
         });
@@ -182,12 +239,12 @@
             bufferLength = dataArray.length;
  
         // 填充背景色
-        this.ctx.fillStyle = 'rgb(200, 200, 200)';
+        this.ctx.fillStyle = 'rgb(255, 255, 255)';
         this.ctx.fillRect(0, 0, this.oCanvas.width, this.oCanvas.height);
  
         // 设定波形绘制颜色
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = 'rgb(0, 0, 0)';
+        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeStyle = 'rgb(0, 88, 255)';
  
         this.ctx.beginPath();
  
@@ -228,8 +285,8 @@
         this.pCtx.fillRect(0, 0, this.pCanvas.width, this.pCanvas.height);
  
         // 设定波形绘制颜色
-        this.pCtx.lineWidth = 2;
-        this.pCtx.strokeStyle = 'rgb(0, 0, 0)';
+        this.pCtx.lineWidth = 1.5;
+        this.pCtx.strokeStyle = 'rgb(0, 88, 255)';
  
         this.pCtx.beginPath();
  
@@ -259,3 +316,8 @@
  
   }
 </script>
+<style>
+.common-layout{
+  text-align: center;
+}
+</style>
